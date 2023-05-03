@@ -30,9 +30,10 @@ class FollowViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
         data['user'] = self.request.user
 
+        author = serializer.validated_data['following']
         if (self.request.user.follower.filter(
-                following=serializer.validated_data['following']).exists() or
-                self.request.user == serializer.validated_data['following']):
+                following=author).exists()
+                or self.request.user == author):
             return Response(
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
