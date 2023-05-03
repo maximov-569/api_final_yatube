@@ -31,8 +31,7 @@ class FollowViewSet(viewsets.ModelViewSet):
         data['user'] = self.request.user
 
         if (self.request.user.follower.filter(
-                following=serializer.validated_data['following']).exists()
-                or
+                following=serializer.validated_data['following']).exists() or
                 self.request.user == serializer.validated_data['following']):
             return Response(
                 serializer.errors,
