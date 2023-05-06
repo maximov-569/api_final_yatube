@@ -1,6 +1,6 @@
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.response import Response
+from rest_framework import mixins
 
 from .permissions import AuthOrOwner, ReadOrOwner
 from .serializers import PostSerializer, GroupSerializer, CommentSerializer
@@ -8,10 +8,13 @@ from .serializers import FollowingSerializer
 from posts.models import Post, Group, Comment, Follow
 
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowViewSet(mixins.ListModelMixin,
+                    mixins.CreateModelMixin,
+                    viewsets.GenericViewSet):
     """ViewSet for Follow model.
 
-    Create - reassembled because we need 'user' in response.
+    perform_create - reassembled because
+    user cannot make follow for other users.
     get_queryset - reassembled because when request get
     we need only following of request.user.
     """
@@ -19,33 +22,14 @@ class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowingSerializer
     permission_classes = [AuthOrOwner]
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('following__username',)
+    search_fields = ('following__username', 'user__username')
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
-
-        # По умолчанию, если переоперделить perform_create,
-        # то в ответе не возвращается user на что жалуется pytest.
-        data = serializer.validated_data
-        data['user'] = self.request.user
-
-        author = serializer.validated_data['following']
-        if (self.request.user.follower.filter(
-                following=author).exists()
-                or self.request.user == author):
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            headers=headers,
-        )
+    # Можно не переопределять метод,
+    # так как по умолчанию поле юзер поступает из сериализатора,
+    # но я не знаю как лучше
+    # по этому оставил это здесь как дополнитульную меру осторожности.
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     def get_queryset(self):
         return self.request.user.follower.all()
