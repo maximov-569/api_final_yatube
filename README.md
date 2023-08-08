@@ -56,7 +56,7 @@ request: "/api/v1/posts/"
 response:
 ```
 {
-	"count": 123,
+        "count": 123,
 	"next": "http://api.example.org/accounts/?offset=400&limit=100",
 	"previous": "http://api.example.org/accounts/?offset=200&limit=100",
 	"results": [
