@@ -51,6 +51,7 @@ python3 manage.py migrate
 python3 manage.py runserver
 ```
 ## Примеры запросов
+# Пример 1
 request: "/api/v1/posts/"
 
 response:
@@ -71,7 +72,7 @@ response:
 		]
 }
 ```
-
+# Пример 2
 request: api/v1/follow/
 with body:
 ```
